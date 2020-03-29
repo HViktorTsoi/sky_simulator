@@ -12,7 +12,7 @@ import requests
 import os
 import pandas as pd
 import numpy as np
-import matplotlib.pylab as plt
+# import matplotlib.pylab as plt
 
 # 判断操作系统
 import config
@@ -36,8 +36,8 @@ def react_with_exe(env_path, step=-1):
     """
     if OS_TYPE == 'Linux':
         # 请求windows上的水利学模型服务器进行预算
-        rv = os.system('cd {} && ./HydroDynamic 1>/dev/null 2>&1'.format(env_path))
-        # rv = os.system('cd {} && ./HydroDynamic'.format(env_path))
+        # rv = os.system('cd {} && ./HydroDynamic 1>/dev/null 2>&1'.format(env_path))
+        rv = os.system('cd {} && ./HydroDynamic'.format(env_path))
         # rv = os.system('cd {} && WINEDEBUG=-all wine Hydrodynamic_model.exe 1>/dev/null 2>&1'.format(env_path))
         # rv = os.system('cd {} && wine Hydrodynamic_model.exe'.format(env_path))
         if str(rv) == '15104':

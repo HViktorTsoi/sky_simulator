@@ -762,5 +762,32 @@ if __name__ == '__main__':
         config.START_GATE,  # 起始闸门
         env_id=9999,  # 环境进程id
     )
-    for env.cur_step in range(1000):
-        print(env.cur_step, env._build_inlet_varience())
+    # 初始化environment
+    env.reset(config.START_GATE, config.NUM_GATE)
+
+    # 水动力模型预热
+    env.warm_up_model(total_warm_up_step=10, save_log=False, logger=None, log_root_dir=None, log_parse_interval=None)
+
+    # 获取初始状态
+    state = env.get_init_state_from_INPUTFILE()
+    print(state)
+
+    # 模拟调控
+    for episode_step in range(50):
+        # TODO action是实际的控制指令 这里用全0来mock
+        #  你需要做的就是用强化学习模型 根据observation 来产生这个调控指令action
+        action = env.build_idle_action()
+
+        # 与仿真模型交互 产生下一个状态的观测量
+        observation, reward, endState, _, state, _ \
+            = env.getNextState(state, action, episode=episode_step, is_training=True)
+
+        # env内部的步骤量需要自增
+        env.cur_step += 1
+
+        # 与水动力仿真模型交互结果
+        # 1. observation是一个向量，顺序存储了各个闸门的闸前水位 闸后水位 闸口开度 边界条件 分水表等数值，可直接给RL模型作为观测量输入去学习
+        # 2. reward是上一步生成的action与水动力模型交互之后得到的奖励向量 长度为config.NUM_GATE 每个闸门一个值
+        # 3. state 这里边的数值和observation一模一样，只不过为了方便和水动力模型交互，做了一些封装，可以直接传递给下一个step的WaterModel.getNextState，不用更改
+        # 4. endState 是水动力学模型的返回状态码，0代表此次调控是符合目标的，否则根据实际情况判断是那里没有达到调控目标，这里具体的业务逻辑看WaterModel.getRewardandState
+        print('\n\n ==step: {}==\n observation for RL model: {}\n state for Hydro Environment: {}\n reward:  {}\n'.format(env.cur_step, observation, state, reward))
